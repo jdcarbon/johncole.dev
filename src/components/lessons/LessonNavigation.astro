@@ -1,0 +1,28 @@
+---
+import type { LessonMeta } from '../../data/lessons';
+
+interface Props {
+  prev: LessonMeta | null;
+  next: LessonMeta | null;
+}
+const { prev, next } = Astro.props;
+---
+<nav class="lesson-nav" aria-label="Lesson navigation">
+  <div>
+    {prev ? (
+      <a class="textlink" href={prev.href}>← Previous: {prev.title}</a>
+    ) : (
+      <span class="muted">← Beginning of sample lessons</span>
+    )}
+  </div>
+  <div>
+    <a class="textlink" href="/teaching#sample-materials">All sample lessons</a>
+  </div>
+  <div class="lesson-nav-next">
+    {next ? (
+      <a class="textlink" href={next.href}>Next: {next.title} →</a>
+    ) : (
+      <span class="muted">End of sample lessons →</span>
+    )}
+  </div>
+</nav>

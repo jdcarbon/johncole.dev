@@ -1,0 +1,334 @@
+---
+import LessonLayout from '../../../layouts/LessonLayout.astro';
+import LearningObjectives from '../../../components/lessons/LearningObjectives.astro';
+import CodeExample from '../../../components/lessons/CodeExample.astro';
+import Exercise from '../../../components/lessons/Exercise.astro';
+import InstructorNote from '../../../components/lessons/InstructorNote.astro';
+
+const objectives = [
+  'Explain the purpose of a function.',
+  'Identify function parameters, arguments, and return values.',
+  'Break a small problem into focused functions.',
+  'Distinguish returning a value from printing it.',
+  'Trace the execution of a function call.',
+  'Write basic tests for expected behavior and edge cases.',
+  'Explain why smaller functions are often easier to test and maintain.',
+];
+
+const toc = [
+  { id: 'central-question', label: 'Central question' },
+  { id: 'objectives', label: 'Objectives' },
+  { id: 'prerequisites', label: 'Prerequisites' },
+  { id: 'opening', label: 'Opening problem' },
+  { id: 'functions', label: 'What a function does' },
+  { id: 'return-print', label: 'Return versus print' },
+  { id: 'decomposition', label: 'Decomposition' },
+  { id: 'testing', label: 'Testing' },
+  { id: 'guided', label: 'Guided practice' },
+  { id: 'exercises', label: 'Independent exercises' },
+  { id: 'assessment', label: 'Assessment' },
+  { id: 'summary', label: 'Summary' },
+  { id: 'explore', label: 'Further exploration' },
+  { id: 'instructor', label: 'Instructor notes' },
+];
+
+const monolith = `study_minutes = [45, 30, 60, 0, 25, 50, 40]
+goal = 45
+
+total = 0
+for value in study_minutes:
+    total = total + value
+
+average = total / len(study_minutes)
+
+days_met = 0
+for value in study_minutes:
+    if value >= goal:
+        days_met = days_met + 1
+
+print("Total:", total, "minutes")
+print("Daily average:", average, "minutes")
+print("Days meeting goal (", goal, "):", days_met)`;
+
+const total_fn = `def total_minutes(minutes):
+    return sum(minutes)
+
+
+study_minutes = [45, 30, 60, 0, 25, 50, 40]
+week_total = total_minutes(study_minutes)
+print(week_total)  # 250`;
+
+const print_vs_return = `def total_minutes_print(minutes):
+    print(sum(minutes))  # displays a value, returns None
+
+
+def total_minutes(minutes):
+    return sum(minutes)  # gives the caller a value to use
+
+
+result = total_minutes([10, 20, 30])
+doubled = result * 2  # works because we returned a number`;
+
+const decomposed = `def total_minutes(minutes):
+    return sum(minutes)
+
+
+def average_minutes(minutes):
+    if not minutes:
+        return 0
+    return total_minutes(minutes) / len(minutes)
+
+
+def days_meeting_goal(minutes, goal):
+    return sum(1 for value in minutes if value >= goal)
+
+
+def format_summary(minutes, goal):
+    total = total_minutes(minutes)
+    average = average_minutes(minutes)
+    met_goal = days_meeting_goal(minutes, goal)
+    return (
+        f"Total: {total} minutes\\n"
+        f"Daily average: {average:.1f} minutes\\n"
+        f"Days meeting goal ({goal}): {met_goal}"
+    )`;
+
+const asserts = `assert total_minutes([10, 20, 30]) == 60
+assert total_minutes([]) == 0
+assert average_minutes([]) == 0
+assert days_meeting_goal([45, 30, 60, 0], 45) == 2`;
+
+const unittest_example = `import unittest
+from study_tracker import total_minutes, average_minutes
+
+
+class TestTotals(unittest.TestCase):
+    def test_total_normal(self):
+        self.assertEqual(total_minutes([10, 20, 30]), 60)
+
+    def test_total_empty(self):
+        self.assertEqual(total_minutes([]), 0)
+
+    def test_average_empty(self):
+        self.assertEqual(average_minutes([]), 0)
+
+
+if __name__ == "__main__":
+    unittest.main()`;
+
+const guided_stub = `def days_meeting_goal(minutes, goal):
+    count = 0
+    for value in minutes:
+        # TODO: if this day meets the goal, increase count
+        pass
+    return count`;
+---
+<LessonLayout
+  slug="functions-and-testing"
+  description="An introductory Python lesson on functions, decomposition, and basic testing using a weekly study-time tracker."
+  toc={toc}
+>
+  <section id="central-question">
+    <h2>Central question</h2>
+    <p><strong>How do we turn a problem into small pieces of code that we can understand, reuse, and test?</strong></p>
+    <p>This lesson uses a simple weekly study-time tracker. The ideas apply to much larger programs: name the work, give each piece a clear job, and check that the pieces behave as expected.</p>
+  </section>
+
+  <div id="objectives">
+    <LearningObjectives objectives={objectives} />
+  </div>
+
+  <section id="prerequisites">
+    <h2>Prerequisites</h2>
+    <p>Students should already understand variables, basic types, conditional statements, lists, and basic loops. Automated testing experience is not required.</p>
+  </section>
+
+  <section id="opening">
+    <h2>Opening problem</h2>
+    <p>A student records minutes spent studying each day:</p>
+    <CodeExample code={`study_minutes = [45, 30, 60, 0, 25, 50, 40]`} title="Input data" />
+    <p>The program should calculate the week’s total, the average daily study time, count days that meet a chosen goal, and produce a readable summary.</p>
+    <p>Here is a working but monolithic starting point:</p>
+    <CodeExample code={monolith} title="Monolithic version" caption="Everything lives in one script: calculation, decisions, and display." />
+    <p>This works for one use. It becomes harder when you want to reuse the total elsewhere, change how the summary is displayed, or verify average behavior for an empty week. Mixing every calculation and print into one block hides the structure of the problem.</p>
+    <p class="downloads">
+      <a class="textlink" href="/teaching/lessons/functions-and-testing/study_tracker_monolith.py">Download monolith example</a>
+      <a class="textlink" href="/teaching/lessons/functions-and-testing/study_tracker.py">Download decomposed example</a>
+      <a class="textlink" href="/teaching/lessons/functions-and-testing/test_study_tracker.py">Download tests</a>
+    </p>
+  </section>
+
+  <section id="functions">
+    <h2>Concept 1 — What a function does</h2>
+    <p>A function is a named block of code that can take inputs, do work, and give back a result. Defining a function does not run it. Calling the function does.</p>
+    <CodeExample code={total_fn} title="A first function" />
+    <ul>
+      <li><code>def</code> begins a function definition.</li>
+      <li><code>total_minutes</code> is the function name.</li>
+      <li><code>minutes</code> is a <strong>parameter</strong> — a local name for an input.</li>
+      <li>The indented body is what runs when the function is called.</li>
+      <li><code>return</code> sends a value back to the caller.</li>
+      <li><code>total_minutes(study_minutes)</code> is a call; <code>study_minutes</code> is an <strong>argument</strong>.</li>
+    </ul>
+    <div class="callout">
+      <p><strong>Trace.</strong> Call <code>total_minutes([10, 20, 30])</code>. Python binds <code>minutes</code> to that list, evaluates <code>sum(minutes)</code> as <code>60</code>, and returns <code>60</code> to the caller. The original list is unchanged.</p>
+    </div>
+  </section>
+
+  <section id="return-print">
+    <h2>Concept 2 — Return versus print</h2>
+    <p>Printing shows a value to a human. Returning gives a value to the rest of the program. A function that only prints is harder to reuse and harder to test, because callers cannot capture the result.</p>
+    <CodeExample code={print_vs_return} title="Return enables reuse" />
+    <p>Printing inside functions is not universally wrong. Presentation code often prints. Calculation code is usually clearer when it returns values and lets another function decide how to display them.</p>
+  </section>
+
+  <section id="decomposition">
+    <h2>Concept 3 — Decomposition</h2>
+    <p>Decomposition means splitting a problem into focused pieces. Each function should do one understandable job.</p>
+    <CodeExample code={decomposed} title="Focused functions" />
+    <p><code>average_minutes</code> handles the empty-list case explicitly. Dividing by <code>len(minutes)</code> without that guard would crash on <code>[]</code>. Empty inputs are common in real data and deserve an intentional decision.</p>
+    <p><code>format_summary</code> handles presentation. The calculation functions stay usable in tests and in other programs that never print.</p>
+  </section>
+
+  <section id="testing">
+    <h2>Concept 4 — Testing</h2>
+    <p>Testing compares actual behavior with expected behavior. Start with assertions:</p>
+    <CodeExample code={asserts} title="Simple assertions" />
+    <p>One passing example is not enough. Include normal cases, boundary cases, and empty input. Also watch for incorrect assumptions—such as assuming a week always has seven days, or that averages are always integers.</p>
+    <p>Python’s standard library includes <code>unittest</code>:</p>
+    <CodeExample code={unittest_example} title="Small unittest example" />
+    <p>Run tests from the lesson folder:</p>
+    <CodeExample code={`python3 -m unittest test_study_tracker.py`} lang="bash" title="Run the provided tests" />
+  </section>
+
+  <section id="guided">
+    <h2>Guided practice</h2>
+    <p>Complete <code>days_meeting_goal</code> so it counts days whose minutes are greater than or equal to <code>goal</code>.</p>
+    <CodeExample code={guided_stub} title="Partial implementation" />
+    <p>Worked walk-through with <code>minutes = [45, 30, 60, 0]</code> and <code>goal = 45</code>:</p>
+    <ol>
+      <li><code>45 &gt;= 45</code> → count becomes 1</li>
+      <li><code>30 &gt;= 45</code> → no change</li>
+      <li><code>60 &gt;= 45</code> → count becomes 2</li>
+      <li><code>0 &gt;= 45</code> → no change</li>
+      <li>Return <code>2</code></li>
+    </ol>
+    <p>Now complete the function and check <code>days_meeting_goal([20, 50, 50], 50)</code> should return <code>2</code>.</p>
+    <details>
+      <summary>Hint</summary>
+      <p>Inside the loop, use <code>if value &gt;= goal: count = count + 1</code>.</p>
+    </details>
+    <details>
+      <summary>Worked solution</summary>
+      <CodeExample code={`def days_meeting_goal(minutes, goal):
+    count = 0
+    for value in minutes:
+        if value >= goal:
+            count = count + 1
+    return count`} />
+    </details>
+  </section>
+
+  <section id="exercises">
+    <h2>Independent exercises</h2>
+
+    <Exercise id="exercise-a" title="Practice — longest session" label="Exercise A">
+      <p>Write <code>longest_session(minutes)</code>.</p>
+      <ul>
+        <li>Return the largest value in the list.</li>
+        <li>Return <code>0</code> for an empty list.</li>
+      </ul>
+      <p><strong>Success criteria:</strong> <code>longest_session([45, 30, 60]) == 60</code> and <code>longest_session([]) == 0</code>.</p>
+      <details>
+        <summary>Hint</summary>
+        <p>Handle the empty case first. Then <code>max(minutes)</code> works for non-empty lists.</p>
+      </details>
+      <details>
+        <summary>Solution</summary>
+        <CodeExample code={`def longest_session(minutes):
+    if not minutes:
+        return 0
+    return max(minutes)`} />
+      </details>
+    </Exercise>
+
+    <Exercise id="exercise-b" title="Apply — count rest days" label="Exercise B">
+      <p>Write <code>count_rest_days(minutes)</code>. A rest day has exactly <code>0</code> minutes of study.</p>
+      <p><strong>Success criteria:</strong> <code>count_rest_days([45, 0, 60, 0]) == 2</code>.</p>
+      <details>
+        <summary>Solution</summary>
+        <CodeExample code={`def count_rest_days(minutes):
+    return sum(1 for value in minutes if value == 0)`} />
+      </details>
+    </Exercise>
+
+    <Exercise id="exercise-c" title="Extend — reject negative durations" label="Exercise C">
+      <p>Add validation so negative study durations are rejected.</p>
+      <p><strong>Required behavior:</strong> if any value is negative, raise <code>ValueError</code> with a clear message. Do not silently convert negatives to zero.</p>
+      <p><strong>Success criteria:</strong> <code>validate_minutes([10, -5, 20])</code> raises <code>ValueError</code>; <code>validate_minutes([10, 0, 20])</code> does not.</p>
+      <details>
+        <summary>Solution</summary>
+        <CodeExample code={`def validate_minutes(minutes):
+    for value in minutes:
+        if value < 0:
+            raise ValueError(f"study minutes cannot be negative: {value}")`} />
+      </details>
+    </Exercise>
+  </section>
+
+  <section id="assessment">
+    <h2>Assessment / knowledge checks</h2>
+    <ol>
+      <li>In <code>def average_minutes(minutes):</code>, what is <code>minutes</code> called—parameter or argument? What would <code>[10, 20]</code> be called in <code>average_minutes([10, 20])</code>?</li>
+      <li>Trace <code>total_minutes([5, 15])</code>. What value is returned?</li>
+      <li>Why is a function that returns a total usually easier to test than one that only prints the total?</li>
+      <li>A classmate writes <code>average_minutes</code> as <code>return sum(minutes) / len(minutes)</code> with no empty check. Why is this problematic?</li>
+      <li>Explain why passing only <code>assert total_minutes([10, 20, 30]) == 60</code> is insufficient evidence that <code>total_minutes</code> is correct.</li>
+    </ol>
+    <details>
+      <summary>Sample answers</summary>
+      <ol>
+        <li><code>minutes</code> is a parameter; <code>[10, 20]</code> is an argument.</li>
+        <li>Returns <code>20</code>.</li>
+        <li>Tests can capture and compare returned values. Printed output is awkward to assert and mixes display with calculation.</li>
+        <li>An empty list causes division by zero. The function crashes instead of defining intentional behavior.</li>
+        <li>One normal case does not cover empty input, single-element lists, or other boundaries. Passing tests are evidence for the cases checked, not proof of complete correctness.</li>
+      </ol>
+    </details>
+  </section>
+
+  <section id="summary">
+    <h2>Summary and key takeaways</h2>
+    <ul>
+      <li>Functions name a piece of work and can return values to callers.</li>
+      <li>Parameters receive arguments when a function is called.</li>
+      <li>Returning supports reuse and testing; printing supports presentation.</li>
+      <li>Decomposition makes programs easier to understand and change.</li>
+      <li>Tests compare expected and actual behavior for normal and edge cases.</li>
+    </ul>
+  </section>
+
+  <section id="explore">
+    <h2>Further exploration</h2>
+    <ul>
+      <li>Add a function that returns a list of day indexes that met the goal.</li>
+      <li>Read Python’s documentation for <code>unittest</code> assertions beyond <code>assertEqual</code>.</li>
+      <li>Compare this lesson’s approach with how you would structure the same program in another language you know.</li>
+    </ul>
+  </section>
+
+  <div id="instructor">
+    <InstructorNote>
+      <p><strong>Suggested pacing (60–75 minutes):</strong> opening + monolith critique (10), functions and tracing (15), return vs print (10), decomposition (15), testing (15), guided + start exercises (10–15). Assign remaining exercises as homework if needed.</p>
+      <p><strong>Common misconceptions:</strong></p>
+      <ul>
+        <li>Confusing parameters with arguments.</li>
+        <li>Treating <code>print</code> as the same as <code>return</code>.</li>
+        <li>Over-decomposing into one-line functions that add noise without clarity.</li>
+        <li>Forgetting empty inputs.</li>
+        <li>Assuming one passing test establishes complete correctness.</li>
+      </ul>
+      <p>These materials are independently developed sample instructional content. They are not presented as materials delivered in an accredited course.</p>
+    </InstructorNote>
+  </div>
+</LessonLayout>

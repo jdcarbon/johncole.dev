@@ -1,0 +1,346 @@
+---
+import LessonLayout from '../../../layouts/LessonLayout.astro';
+import LearningObjectives from '../../../components/lessons/LearningObjectives.astro';
+import CodeExample from '../../../components/lessons/CodeExample.astro';
+import Exercise from '../../../components/lessons/Exercise.astro';
+import InstructorNote from '../../../components/lessons/InstructorNote.astro';
+
+const objectives = [
+  'Distinguish a plausible implementation from a verified implementation.',
+  'Translate requirements into acceptance criteria.',
+  'Identify untested assumptions.',
+  'Construct meaningful normal, boundary, and failure test cases.',
+  'Review AI-generated code for correctness and data integrity.',
+  'Recognize the limitations of AI-generated tests and explanations.',
+  'Explain the human engineer’s responsibility when using coding assistants.',
+];
+
+const toc = [
+  { id: 'central-question', label: 'Central question' },
+  { id: 'objectives', label: 'Objectives' },
+  { id: 'prerequisites', label: 'Prerequisites' },
+  { id: 'opening', label: 'Opening scenario' },
+  { id: 'requirements', label: 'Establish requirements' },
+  { id: 'flawed', label: 'Flawed implementation' },
+  { id: 'first-review', label: 'First review' },
+  { id: 'matrix', label: 'Acceptance matrix' },
+  { id: 'tests', label: 'Execute tests' },
+  { id: 'repair', label: 'Repair' },
+  { id: 'limits', label: 'What tests do not establish' },
+  { id: 'hdse', label: 'Connection to HDSE' },
+  { id: 'exercises', label: 'Exercises' },
+  { id: 'assessment', label: 'Assessment' },
+  { id: 'summary', label: 'Summary' },
+  { id: 'explore', label: 'Further exploration' },
+  { id: 'instructor', label: 'Instructor notes' },
+];
+
+const flawed = `import csv
+import io
+from datetime import datetime
+
+
+def import_subscriptions(csv_text: str) -> list[dict]:
+    reader = csv.DictReader(io.StringIO(csv_text))
+    results = []
+
+    for row in reader:
+        try:
+            name = (row.get("subscription_name") or "").strip()
+            vendor = (row.get("vendor") or "").strip()
+            cost = float(row.get("monthly_cost") or 0)
+            renewal = datetime.strptime(
+                row.get("renewal_date", ""), "%Y-%m-%d"
+            ).date()
+            results.append(
+                {
+                    "subscription_name": name,
+                    "vendor": vendor,
+                    "monthly_cost": cost,
+                    "renewal_date": renewal,
+                }
+            )
+        except Exception:
+            continue
+
+    return results`;
+
+const corrected_core = `from decimal import Decimal, InvalidOperation
+from datetime import datetime
+import csv, io
+
+REQUIRED_COLUMNS = (
+    "subscription_name", "vendor", "monthly_cost", "renewal_date"
+)
+
+class ImportError(ValueError):
+    pass
+
+
+def import_subscriptions(csv_text: str) -> list[dict]:
+    reader = csv.DictReader(io.StringIO(csv_text))
+    if reader.fieldnames is None:
+        raise ImportError("CSV has no header row")
+
+    headers = [h.strip() if h else "" for h in reader.fieldnames]
+    missing = [c for c in REQUIRED_COLUMNS if c not in headers]
+    if missing:
+        raise ImportError(f"missing required column(s): {', '.join(missing)}")
+
+    pending, seen = [], set()
+    for index, row in enumerate(reader, start=2):
+        record = _parse_row(row, index)
+        identity = (record["subscription_name"], record["vendor"])
+        if identity in seen:
+            raise ImportError(f"duplicate on line {index}")
+        seen.add(identity)
+        pending.append(record)
+    return pending`;
+---
+<LessonLayout
+  slug="evaluating-ai-code"
+  description="An intermediate lesson on turning an underspecified CSV-import prompt into acceptance criteria, tests, and a release decision."
+  toc={toc}
+>
+  <section id="central-question">
+    <h2>Central question</h2>
+    <p><strong>How can we determine whether AI-generated code actually satisfies the requirements of a software task?</strong></p>
+    <p>Students do not need access to an AI tool for this lesson. They evaluate an illustrative generated implementation against an explicit import contract.</p>
+  </section>
+
+  <div id="objectives">
+    <LearningObjectives objectives={objectives} />
+  </div>
+
+  <section id="prerequisites">
+    <h2>Prerequisites</h2>
+    <p>Python functions and basic collections, introductory testing, basic file/CSV input concepts, and familiarity with application data. No prior AI-tool access is required.</p>
+  </section>
+
+  <section id="opening">
+    <h2>Opening scenario</h2>
+    <p>A developer asks an assistant:</p>
+    <div class="callout">
+      <p>“Write a Python function to import subscriptions from a CSV file.”</p>
+    </div>
+    <p>The assistant returns plausible code. It looks readable, executes, and works for a basic example.</p>
+    <p><strong>Discussion prompt:</strong> What evidence would you need before trusting this code with real application data?</p>
+  </section>
+
+  <section id="requirements">
+    <h2>Step 1 — Establish requirements</h2>
+    <p>The original prompt is underspecified. For this lesson, use the following import contract.</p>
+    <p>CSV columns:</p>
+    <ul>
+      <li><code>subscription_name</code> (required)</li>
+      <li><code>vendor</code> (required)</li>
+      <li><code>monthly_cost</code> (required decimal amount)</li>
+      <li><code>renewal_date</code> (required, <code>YYYY-MM-DD</code>)</li>
+    </ul>
+    <ul>
+      <li>Currency is assumed USD for this version; record that assumption explicitly in code or docs.</li>
+      <li>Use <code>decimal.Decimal</code> for money. Do not use binary floating-point for currency amounts.</li>
+      <li>Empty required fields are invalid.</li>
+      <li>Duplicate identity is <code>(subscription_name, vendor)</code>.</li>
+      <li><strong>All-or-nothing:</strong> if any row or header is invalid, reject the import without keeping partial results.</li>
+      <li>On success, return a list of normalized records. On failure, raise a clear error.</li>
+    </ul>
+  </section>
+
+  <section id="flawed">
+    <h2>Step 2 — Present a flawed implementation</h2>
+    <p>The following is an <strong>illustrative generated implementation</strong>, not an actual transcript from a specific model. It runs and handles a happy-path CSV, but it violates the contract in several realistic ways.</p>
+    <CodeExample code={flawed} title="Illustrative generated implementation" />
+    <p class="downloads">
+      <a class="textlink" href="/teaching/lessons/evaluating-ai-code/flawed_import.py">Download flawed_import.py</a>
+      <a class="textlink" href="/teaching/lessons/evaluating-ai-code/corrected_import.py">Download corrected_import.py</a>
+      <a class="textlink" href="/teaching/lessons/evaluating-ai-code/test_import.py">Download test_import.py</a>
+      <a class="textlink" href="/teaching/lessons/evaluating-ai-code/sample.csv">Download sample.csv</a>
+    </p>
+  </section>
+
+  <section id="first-review">
+    <h2>Step 3 — First review</h2>
+    <p>Before looking at tests, inspect the implementation and note:</p>
+    <ul>
+      <li>Assumptions about missing values and types</li>
+      <li>Likely failure points</li>
+      <li>Requirements that are missing</li>
+      <li>Inputs you would test</li>
+      <li>Places where a “successful” result could still be wrong</li>
+    </ul>
+    <details>
+      <summary>Instructor commentary (reveal after student inspection)</summary>
+      <ul>
+        <li><code>float</code> is used for money.</li>
+        <li>Blank costs become <code>0.0</code>.</li>
+        <li>Empty names/vendors can be imported.</li>
+        <li>Invalid rows are skipped; earlier valid rows are kept (not all-or-nothing).</li>
+        <li>Duplicates are allowed.</li>
+        <li>Errors are swallowed, so operators get little useful reporting.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section id="matrix">
+    <h2>Step 4 — Build an acceptance test matrix</h2>
+    <div class="datatable-wrap">
+      <table class="datatable">
+        <thead>
+          <tr>
+            <th>Case</th>
+            <th>Expected behavior under the contract</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Valid single row</td><td>Return one record with <code>Decimal</code> cost and parsed date</td></tr>
+          <tr><td>Valid multiple rows</td><td>Return all rows</td></tr>
+          <tr><td>Empty required field</td><td>Reject entire import</td></tr>
+          <tr><td>Invalid date</td><td>Reject entire import</td></tr>
+          <tr><td>Invalid monetary value</td><td>Reject entire import</td></tr>
+          <tr><td>Duplicate subscription</td><td>Reject entire import</td></tr>
+          <tr><td>Missing required column</td><td>Reject entire import</td></tr>
+          <tr><td>Failure after valid rows</td><td>Reject entire import; keep nothing</td></tr>
+          <tr><td>Empty CSV with correct headers</td><td>Return an empty list</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="tests">
+    <h2>Step 5 — Execute tests</h2>
+    <p>From the lesson materials folder:</p>
+    <CodeExample
+      code={`cd evaluating-ai-code
+python3 -m unittest test_import.py -v`}
+      lang="bash"
+      title="Run the acceptance suite"
+    />
+    <p>The provided suite imports <code>corrected_import</code> and should pass. It also includes direct checks that document defective behaviors in <code>flawed_import</code>.</p>
+    <p>If you temporarily point the main tests at <code>flawed_import</code>, several contract tests fail for the intended reasons: float costs, accepted empty names, partial imports, and missing duplicate rejection. Those failures are instructional, not environment problems.</p>
+  </section>
+
+  <section id="repair">
+    <h2>Step 6 — Repair the implementation</h2>
+    <p>The corrected version validates headers first, parses each row with explicit checks, uses <code>Decimal</code>, rejects duplicates, and only returns results after the whole file is accepted.</p>
+    <CodeExample code={corrected_core} title="Corrected structure (excerpt)" caption="See corrected_import.py for the full runnable module, including _parse_row." />
+    <p>What changed and why:</p>
+    <ul>
+      <li>Schema validation before row processing</li>
+      <li>Precise money representation</li>
+      <li>Clear required-field and date rules</li>
+      <li>All-or-nothing behavior</li>
+      <li>Understandable errors instead of silent skips</li>
+    </ul>
+  </section>
+
+  <section id="limits">
+    <h2>Step 7 — What tests do not establish</h2>
+    <p>Passing unit tests do not automatically prove complete requirements coverage, security, performance at scale, correct integration with production systems, appropriate authorization, or operational reliability.</p>
+    <p>Useful complements include human review, independent acceptance criteria, integration tests, boundary testing, and security review where applicable.</p>
+    <p>Having a second AI model review the first does not, by itself, constitute independent verification. Independence comes from evidence outside the model’s own assertion that the work is correct.</p>
+  </section>
+
+  <section id="hdse">
+    <h2>Step 8 — Connect to HDSE</h2>
+    <p>This lesson practices a core idea from <a class="textlink" href="/hdse">Human-Directed Software Engineering</a>:</p>
+    <ul>
+      <li>Humans define desired behavior.</li>
+      <li>Implementation may be delegated.</li>
+      <li>Artifacts must be inspected and verified.</li>
+      <li>Important decisions and tests remain in durable project files.</li>
+      <li>Humans retain responsibility for accepting the result.</li>
+    </ul>
+  </section>
+
+  <section id="exercises">
+    <h2>Exercises</h2>
+
+    <Exercise id="exercise-a" title="Find the defect" label="Exercise A">
+      <p>Inspect <a class="textlink" href="/teaching/lessons/evaluating-ai-code/exercise_a_flawed.py">exercise_a_flawed.py</a>. Identify a correctness issue and propose a test that reveals it.</p>
+      <details>
+        <summary>Solution</summary>
+        <p>When no positive numbers remain, <code>average_positive([0, -1, 0])</code> divides by zero. A revealing test expects <code>0</code> for that input (per the stated contract) and currently fails with <code>ZeroDivisionError</code>.</p>
+      </details>
+    </Exercise>
+
+    <Exercise id="exercise-b" title="Improve the tests" label="Exercise B">
+      <p>Add at least two tests not already covered—for example, whitespace-only fields, negative costs, or duplicate rows that differ only after stripping. Explain why each test is meaningful.</p>
+      <details>
+        <summary>Example additions</summary>
+        <CodeExample
+          code={`def test_whitespace_only_name_rejected(self):
+    csv_text = HEADER + "   ,CloudHost,49.00,2026-12-01\\n"
+    with self.assertRaises(ImportError):
+        import_subscriptions(csv_text)
+
+def test_negative_cost_rejected(self):
+    csv_text = HEADER + "App Hosting,CloudHost,-1.00,2026-12-01\\n"
+    with self.assertRaises(ImportError):
+        import_subscriptions(csv_text)`}
+        />
+      </details>
+    </Exercise>
+
+    <Exercise id="exercise-c" title="Make a release decision" label="Exercise C">
+      <p>All unit tests pass. An unresolved integration question remains: the production app stores costs as integer cents and may already contain subscriptions with the same vendor and name. Do you release? What evidence is missing? What verification would you require?</p>
+      <details>
+        <summary>Discussion guide</summary>
+        <p>A cautious answer is “not yet.” Missing evidence may include mapping from <code>Decimal</code> dollars to integer cents, duplicate policy against existing database rows, transaction boundaries around persistence, authorization for who may import, and an integration test against a staging database. Unit tests on the parser alone do not settle those questions.</p>
+      </details>
+    </Exercise>
+  </section>
+
+  <section id="assessment">
+    <h2>Assessment rubric</h2>
+    <div class="datatable-wrap">
+      <table class="datatable">
+        <thead>
+          <tr><th>Criterion</th><th>Looking for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Requirements comprehension</td><td>States the import contract clearly</td></tr>
+          <tr><td>Flawed assumptions</td><td>Identifies multiple real defects, not style nits only</td></tr>
+          <tr><td>Test design</td><td>Includes normal, boundary, and failure cases</td></tr>
+          <tr><td>Code correctness</td><td>Repair matches the contract and passes tests</td></tr>
+          <tr><td>Verification limits</td><td>Explains what passing tests do not prove</td></tr>
+          <tr><td>Engineering judgment</td><td>Makes a reasoned release decision with missing evidence named</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>Summary and key takeaways</h2>
+    <ul>
+      <li>Plausible code is not verified code.</li>
+      <li>Acceptance criteria must be explicit before trusting generated implementations.</li>
+      <li>Tests should target the contract, including failure behavior.</li>
+      <li>AI-generated tests and explanations can share the same blind spots as the code.</li>
+      <li>Humans remain accountable for release decisions.</li>
+    </ul>
+  </section>
+
+  <section id="explore">
+    <h2>Further exploration</h2>
+    <ul>
+      <li>Add an integration test that writes imported rows into SQLite using the schema from the modeling lesson.</li>
+      <li>Compare all-or-nothing import with a documented partial-success API—and the UX consequences of each.</li>
+      <li>Read the HDSE page and map this lesson’s steps onto its workflow stages.</li>
+    </ul>
+  </section>
+
+  <div id="instructor">
+    <InstructorNote>
+      <p><strong>Suggested pacing (≈75 minutes):</strong> opening discussion (10), contract (10), inspect flawed code (15), matrix + run tests (15), repair walkthrough (15), limits/HDSE/exercises (10).</p>
+      <p><strong>Common issues:</strong></p>
+      <ul>
+        <li>Automation bias — trusting clean-looking code</li>
+        <li>Confusing test count with test quality</li>
+        <li>Treating model explanations as independent evidence</li>
+        <li>Wanting to ban AI instead of assessing understanding</li>
+      </ul>
+      <p>Students may use AI while still demonstrating understanding through explanation, tests, and repair. These materials are independently developed samples, not a claim that a particular assessment approach has been experimentally proven superior.</p>
+    </InstructorNote>
+  </div>
+</LessonLayout>

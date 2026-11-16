@@ -1,0 +1,12 @@
+---
+interface Props {
+  title?: string;
+}
+const { title = 'Instructor notes' } = Astro.props;
+---
+<aside class="instructor-note" aria-labelledby="instructor-note-heading">
+  <h2 id="instructor-note-heading">{title}</h2>
+  <div class="instructor-note-body">
+    <slot />
+  </div>
+</aside>

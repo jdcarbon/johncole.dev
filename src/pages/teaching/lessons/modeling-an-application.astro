@@ -1,0 +1,328 @@
+---
+import LessonLayout from '../../../layouts/LessonLayout.astro';
+import LearningObjectives from '../../../components/lessons/LearningObjectives.astro';
+import CodeExample from '../../../components/lessons/CodeExample.astro';
+import Exercise from '../../../components/lessons/Exercise.astro';
+import InstructorNote from '../../../components/lessons/InstructorNote.astro';
+
+const objectives = [
+  'Identify important entities in a problem domain.',
+  'Distinguish requirements from implementation decisions.',
+  'Identify one-to-many relationships.',
+  'Select primary and foreign keys.',
+  'Recognize basic data integrity requirements.',
+  'Translate a simple conceptual model into SQL tables.',
+  'Evaluate tradeoffs in alternative designs.',
+  'Explain why a schema should reflect the actual problem rather than merely the user interface.',
+];
+
+const toc = [
+  { id: 'central-question', label: 'Central question' },
+  { id: 'objectives', label: 'Objectives' },
+  { id: 'prerequisites', label: 'Prerequisites' },
+  { id: 'opening', label: 'Opening scenario' },
+  { id: 'scope', label: 'Establish scope' },
+  { id: 'entities', label: 'Identify entities' },
+  { id: 'relationships', label: 'Relationships' },
+  { id: 'schema', label: 'Implement a schema' },
+  { id: 'sample-data', label: 'Sample data' },
+  { id: 'queries', label: 'Querying' },
+  { id: 'evaluate', label: 'Evaluate the design' },
+  { id: 'exercises', label: 'Exercises' },
+  { id: 'assessment', label: 'Assessment' },
+  { id: 'summary', label: 'Summary' },
+  { id: 'explore', label: 'Further exploration' },
+  { id: 'instructor', label: 'Instructor notes' },
+];
+
+const schemaSql = `PRAGMA foreign_keys = ON;
+
+CREATE TABLE teams (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE subscriptions (
+    id INTEGER PRIMARY KEY,
+    team_id INTEGER NOT NULL,
+    vendor TEXT NOT NULL,
+    name TEXT NOT NULL,
+    cost_minor INTEGER NOT NULL CHECK (cost_minor >= 0),
+    currency TEXT NOT NULL CHECK (length(currency) = 3),
+    billing_interval TEXT NOT NULL CHECK (
+        billing_interval IN ('monthly', 'annual')
+    ),
+    next_renewal_date TEXT NOT NULL CHECK (
+        next_renewal_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+    ),
+    status TEXT NOT NULL CHECK (status IN ('active', 'canceled')),
+    FOREIGN KEY (team_id) REFERENCES teams (id)
+);`;
+
+const queryUpcoming = `SELECT t.name AS team_name,
+       s.name AS subscription_name,
+       s.next_renewal_date
+FROM subscriptions AS s
+JOIN teams AS t ON t.id = s.team_id
+WHERE s.status = 'active'
+  AND s.next_renewal_date BETWEEN '2026-11-01' AND '2026-11-30'
+ORDER BY s.next_renewal_date;`;
+
+const queryMonthly = `-- Intentionally limited to monthly subscriptions.
+SELECT SUM(cost_minor) AS monthly_recurring_cost_minor
+FROM subscriptions
+WHERE status = 'active'
+  AND billing_interval = 'monthly';`;
+---
+<LessonLayout
+  slug="modeling-an-application"
+  description="An intermediate lesson that turns a vague subscription-tracking request into entities, relationships, SQLite tables, and queries."
+  toc={toc}
+>
+  <section id="central-question">
+    <h2>Central question</h2>
+    <p><strong>How do we turn a loosely stated business need into a system of entities, relationships, constraints, and behaviors?</strong></p>
+    <p>Students practice clarifying scope before writing SQL, then implement a small but honest schema for tracking software subscriptions.</p>
+  </section>
+
+  <div id="objectives">
+    <LearningObjectives objectives={objectives} />
+  </div>
+
+  <section id="prerequisites">
+    <h2>Prerequisites</h2>
+    <p>Introductory programming concepts and basic familiarity with tables and records. Prior SQL experience helps but is not required. Examples use SQLite.</p>
+  </section>
+
+  <section id="opening">
+    <h2>Opening scenario</h2>
+    <p>A small business says:</p>
+    <div class="callout">
+      <p>“We need to know what software subscriptions we’re paying for, how much they cost, and when they renew.”</p>
+    </div>
+    <p>That sentence is a starting point, not a complete specification. Engineering begins by resolving consequential ambiguity. Useful questions include:</p>
+    <ul>
+      <li>Does the business have multiple teams?</li>
+      <li>Can multiple subscriptions use the same vendor?</li>
+      <li>Are subscriptions monthly, annual, or mixed?</li>
+      <li>What currency is used?</li>
+      <li>Can prices change over time?</li>
+      <li>What exactly does “renewal date” mean?</li>
+      <li>Who may create or edit a subscription?</li>
+      <li>What happens when a subscription is canceled?</li>
+    </ul>
+    <p>Some answers belong in the first version. Others can wait. The skill is deciding which ambiguities are consequential now.</p>
+  </section>
+
+  <section id="scope">
+    <h2>Step 1 — Establish scope</h2>
+    <p>For this classroom example, the application must:</p>
+    <ul>
+      <li>Support multiple teams</li>
+      <li>Store subscriptions belonging to teams</li>
+      <li>Record vendor, subscription name, cost, currency, billing interval, and next renewal date</li>
+      <li>Distinguish active and canceled subscriptions</li>
+      <li>Report upcoming renewals</li>
+    </ul>
+    <p><strong>Out of scope for v1:</strong> payment processing, historical invoices, seat counts, advanced authorization, and multi-team ownership of a single subscription.</p>
+    <p>Explicit scope is itself a design artifact. Without it, students invent features at random or freeze waiting for perfect requirements.</p>
+  </section>
+
+  <section id="entities">
+    <h2>Step 2 — Identify entities</h2>
+    <p>Start with two entities:</p>
+    <ul>
+      <li><strong>Team</strong> — a group that owns subscriptions</li>
+      <li><strong>Subscription</strong> — a recurring software purchase tracked by the business</li>
+    </ul>
+    <p><strong>Vendor</strong> is a candidate separate entity. In v1 we store vendor as text on each subscription. That is a deliberate simplification, not a claim that vendor can never deserve its own table.</p>
+    <p>A domain concept is not automatically a database table. Tables should earn their place by carrying attributes or relationships the system must remember.</p>
+  </section>
+
+  <section id="relationships">
+    <h2>Step 3 — Relationships</h2>
+    <p>A team can have many subscriptions. Each subscription belongs to one team. That is a one-to-many relationship.</p>
+    <div class="erdiagram" role="img" aria-label="Entity relationship diagram: one Team has many Subscriptions">
+{`Team (1) --------< (many) Subscription
+ id                     id
+ name                   team_id  → Team.id
+                        vendor
+                        name
+                        cost_minor
+                        currency
+                        billing_interval
+                        next_renewal_date
+                        status`}
+    </div>
+    <p class="erdiagram-caption">Textual ER view: each subscription row points to exactly one team through <code>team_id</code>. Color is not required to read the cardinality.</p>
+  </section>
+
+  <section id="schema">
+    <h2>Step 4 — Implement a schema</h2>
+    <p>Use SQLite-compatible SQL. Money is stored as integer minor units (cents for USD) with an explicit currency code. Avoid floating-point money.</p>
+    <CodeExample code={schemaSql} lang="sql" title="Core schema" caption="Dates are stored as ISO text (YYYY-MM-DD). This is a common SQLite teaching approach; production systems may use richer date types." />
+    <ul>
+      <li><code>id</code> columns are primary keys.</li>
+      <li><code>team_id</code> is a foreign key referencing <code>teams(id)</code>.</li>
+      <li><code>CHECK</code> constraints encode allowed intervals and statuses.</li>
+      <li>Enable foreign keys in SQLite with <code>PRAGMA foreign_keys = ON;</code></li>
+    </ul>
+    <p class="downloads">
+      <a class="textlink" href="/teaching/lessons/modeling-an-application/schema.sql">Download schema.sql</a>
+      <a class="textlink" href="/teaching/lessons/modeling-an-application/seed.sql">Download seed.sql</a>
+      <a class="textlink" href="/teaching/lessons/modeling-an-application/queries.sql">Download queries.sql</a>
+    </p>
+    <CodeExample
+      code={`sqlite3 subscriptions.db < schema.sql
+sqlite3 subscriptions.db < seed.sql`}
+      lang="bash"
+      title="Create and load the database"
+    />
+  </section>
+
+  <section id="sample-data">
+    <h2>Step 5 — Sample data</h2>
+    <p>The seed file includes two teams, mixed monthly and annual subscriptions, one canceled subscription, and deterministic renewal dates in late 2026 and early 2027.</p>
+    <div class="datatable-wrap">
+      <table class="datatable">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Subscription</th>
+            <th>Cost</th>
+            <th>Interval</th>
+            <th>Renewal</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Operations</td><td>App Hosting</td><td>$49.00</td><td>monthly</td><td>2026-12-01</td><td>active</td></tr>
+          <tr><td>Operations</td><td>Transactional Email</td><td>$29.00</td><td>monthly</td><td>2026-11-20</td><td>active</td></tr>
+          <tr><td>Operations</td><td>SSO Add-on</td><td>$120.00</td><td>annual</td><td>2027-03-15</td><td>active</td></tr>
+          <tr><td>Marketing</td><td>Asset Library</td><td>$39.00</td><td>monthly</td><td>2026-11-28</td><td>active</td></tr>
+          <tr><td>Marketing</td><td>Campaign Analytics</td><td>$99.00</td><td>monthly</td><td>2026-10-05</td><td>canceled</td></tr>
+          <tr><td>Marketing</td><td>Copy Assistant</td><td>$150.00</td><td>annual</td><td>2027-01-10</td><td>active</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="queries">
+    <h2>Step 6 — Querying the system</h2>
+    <p><strong>1. Active subscriptions for Operations</strong> — filter by team name and <code>status = 'active'</code>.</p>
+    <p><strong>2. Renewals in a defined window</strong> — use explicit dates, not “next month”:</p>
+    <CodeExample code={queryUpcoming} lang="sql" title="Renewals in November 2026" caption="Expected rows: Transactional Email (2026-11-20) and Asset Library (2026-11-28)." />
+    <p><strong>3. Monthly recurring cost</strong> — sum only active monthly subscriptions. Do not mix annual charges into this total without normalizing periods.</p>
+    <CodeExample code={queryMonthly} lang="sql" title="Monthly recurring total" caption="Expected result with the seed data: 11700 minor units ($117.00)." />
+    <p><strong>4. Join teams and subscriptions</strong> — list team name with each subscription’s vendor, interval, and status.</p>
+  </section>
+
+  <section id="evaluate">
+    <h2>Step 7 — Evaluate the design</h2>
+    <p>Ask what happens when requirements change:</p>
+    <ul>
+      <li>What if subscriptions can belong to multiple teams?</li>
+      <li>What if the business needs price history?</li>
+      <li>What if a vendor changes its name?</li>
+      <li>What if multiple currencies appear in one report?</li>
+      <li>What if billing schedules are irregular?</li>
+    </ul>
+    <p>A good design is appropriate to known requirements. Maximal generalization is not automatically better. Adding a join table “just in case” can make the first version harder without solving a real need.</p>
+  </section>
+
+  <section id="exercises">
+    <h2>Exercises</h2>
+
+    <Exercise id="exercise-a" title="Extend the model — canceled_at" label="Exercise A">
+      <p>Add a field that records when a subscription was canceled. Discuss constraints:</p>
+      <ul>
+        <li>Should active rows require <code>canceled_at</code> to be null?</li>
+        <li>Should canceled rows require a date?</li>
+      </ul>
+      <details>
+        <summary>Solution sketch</summary>
+        <p>See <a class="textlink" href="/teaching/lessons/modeling-an-application/schema_with_canceled_at.sql">schema_with_canceled_at.sql</a>. A useful check pairs status with the presence or absence of <code>canceled_at</code>.</p>
+      </details>
+    </Exercise>
+
+    <Exercise id="exercise-b" title="Write a query — 30-day window" label="Exercise B">
+      <p>Return active subscriptions renewing between <code>2026-11-15</code> and <code>2026-12-14</code> inclusive. Use those explicit dates.</p>
+      <details>
+        <summary>Solution</summary>
+        <CodeExample
+          code={`SELECT t.name AS team_name, s.name AS subscription_name, s.next_renewal_date
+FROM subscriptions AS s
+JOIN teams AS t ON t.id = s.team_id
+WHERE s.status = 'active'
+  AND s.next_renewal_date BETWEEN '2026-11-15' AND '2026-12-14'
+ORDER BY s.next_renewal_date;`}
+          lang="sql"
+          caption="With the seed data: Transactional Email, Asset Library, and App Hosting."
+        />
+      </details>
+    </Exercise>
+
+    <Exercise id="exercise-c" title="Defend a decision — Vendor table?" label="Exercise C">
+      <p>Should Vendor become a separate table? Argue both sides, then recommend one approach for the stated v1 scope.</p>
+      <details>
+        <summary>Discussion points</summary>
+        <p><strong>Separate table:</strong> avoids renaming drift, supports vendor-level attributes later, reduces duplicated strings.</p>
+        <p><strong>Text column:</strong> simpler joins, faster to implement, adequate when vendor is only a label and the dataset is small.</p>
+        <p>For the stated scope, a text column is defensible. Promote Vendor when the business needs vendor attributes or consistent renaming.</p>
+      </details>
+    </Exercise>
+  </section>
+
+  <section id="assessment">
+    <h2>Assessment</h2>
+    <p><strong>Prompt:</strong> A campus club wants to track equipment checkouts to members. Identify entities and relationships, propose a small schema, and write one query listing currently checked-out items.</p>
+    <div class="datatable-wrap">
+      <table class="datatable">
+        <thead>
+          <tr><th>Criterion</th><th>Looking for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Entities</td><td>Recognizes members/items/checkouts or an equivalent coherent set</td></tr>
+          <tr><td>Relationships</td><td>Correct cardinality; keys connect related rows</td></tr>
+          <tr><td>Integrity</td><td>Required fields and sensible constraints</td></tr>
+          <tr><td>Query</td><td>Returns currently checked-out items with needed context</td></tr>
+          <tr><td>Tradeoffs</td><td>Explains at least one deliberate simplification</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>Summary and key takeaways</h2>
+    <ul>
+      <li>Ambiguous requests are not specifications.</li>
+      <li>Scope decides which entities and constraints belong in v1.</li>
+      <li>Primary keys identify rows; foreign keys express relationships.</li>
+      <li>Schema design includes behavior and constraints, not only column names.</li>
+      <li>Multiple designs can be defensible; students should explain tradeoffs.</li>
+    </ul>
+  </section>
+
+  <section id="explore">
+    <h2>Further exploration</h2>
+    <ul>
+      <li>Add an index rationale write-up for renewal-date queries.</li>
+      <li>Model price history without breaking current cost reporting.</li>
+      <li>Compare this schema with how a UI screen might mislead you into one table per form.</li>
+    </ul>
+  </section>
+
+  <div id="instructor">
+    <InstructorNote>
+      <p><strong>Suggested pacing (≈75 minutes):</strong> ambiguity discussion (10), scope (10), entities/relationships (15), schema and money/date choices (15), seed + queries (15), design evaluation + exercises (10).</p>
+      <p><strong>Common misconceptions:</strong></p>
+      <ul>
+        <li>Jumping to tables before understanding requirements.</li>
+        <li>Treating UI screens as the schema.</li>
+        <li>Confusing primary keys with foreign keys.</li>
+        <li>Assuming one “perfect” schema exists for every future requirement.</li>
+      </ul>
+      <p>Remind students that good design requires explicit scope. These are sample instructional materials, not a claim of classroom delivery history.</p>
+    </InstructorNote>
+  </div>
+</LessonLayout>

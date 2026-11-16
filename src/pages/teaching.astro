@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { lessons } from '../data/lessons';
 
 const topics = [
   {
@@ -58,20 +59,6 @@ const topics = [
   },
 ];
 
-const materials = [
-  {
-    title: 'Functions, Decomposition, and Testing',
-    detail: 'Introductory Python — structure, small functions, and tests that reveal intent.',
-  },
-  {
-    title: 'Modeling a Real-World Application',
-    detail: 'Software design and relational data — entities, constraints, and workable schemas.',
-  },
-  {
-    title: 'Evaluating AI-Generated Code',
-    detail: 'Testing, verification, and engineering judgment when an assistant drafts the first version.',
-  },
-];
 ---
 <Base
   title="Teaching Software Engineering"
@@ -126,7 +113,7 @@ const materials = [
   <section class="wrap section" style="padding-top:0">
     <div class="bodycopy">
       <h2>Bringing Real Systems Into the Classroom</h2>
-      <p>Much of what working engineers do is not greenfield invention. Long-lived production systems teach lessons that self-contained exercises rarely surface. I want instructional examples that reflect that reality at a scope students can handle—without inventing finished classroom projects that do not yet exist.</p>
+      <p>Much of what working engineers do is not greenfield invention. Long-lived production systems teach lessons that self-contained exercises rarely surface. The sample lessons below translate patterns from that kind of work into scoped instructional examples—without disclosing confidential client systems.</p>
       <p>Professional work has repeatedly required modernizing existing software rather than starting from scratch; working with complex business rules and changing requirements; designing databases that support operational workflows; integrating with legacy applications and third-party systems; diagnosing performance and reliability problems; and maintaining code written across different generations of technology. Inventory and auction operations, engagement platforms, and content workflows all force the same underlying question: how do you change a system people already rely on without breaking what still works?</p>
       <p>Those experiences do not become course content by dumping proprietary details into a syllabus. They become content by translating patterns into understandable, appropriately scoped problems: a schema that must absorb a new workflow without breaking reports; an import path that must fail safely; an API whose contract has to survive a client that cannot be updated overnight. Students should leave with practice that resembles how software actually lives.</p>
       <p><a class="textlink" href="/work">Selected professional and independent work</a></p>
@@ -143,24 +130,25 @@ const materials = [
     </div>
   </section>
 
-  <section class="wrap section" style="padding-top:0">
+  <section class="wrap section" style="padding-top:0" id="sample-materials">
     <div class="sectionhead">
       <div>
-        <div class="eyebrow">Curriculum in progress</div>
+        <div class="eyebrow">Sample instructional materials</div>
         <h2>Sample Teaching Materials</h2>
       </div>
     </div>
     <div class="bodycopy" style="margin-bottom:8px">
-      <p>I am preparing sample lessons and exercises for introductory programming and software engineering. Published materials will appear here as they are ready. Until then, these titles indicate the direction of the work.</p>
+      <p>These are independently developed sample lessons for community-college and undergraduate contexts. They are complete instructional materials you can read and adapt. They are not materials from an accredited course I have already taught, and they are not presented as institutional curriculum.</p>
     </div>
     <div class="materialrows">
-      {materials.map((m) => (
+      {lessons.map((lesson) => (
         <div class="materialrow">
           <div>
-            <h3>{m.title}</h3>
-            <p>{m.detail}</p>
+            <h3><a class="textlink" href={lesson.href}>{lesson.title}</a></h3>
+            <p class="lesson-card-meta">{lesson.level} · {lesson.subject} · {lesson.duration}</p>
+            <p>{lesson.description}</p>
           </div>
-          <span class="status">In development</span>
+          <a class="textlink" href={lesson.href}>Open lesson</a>
         </div>
       ))}
     </div>

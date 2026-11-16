@@ -1,0 +1,18 @@
+---
+import { Code } from 'astro:components';
+
+interface Props {
+  code: string;
+  lang?: string;
+  title?: string;
+  caption?: string;
+}
+const { code, lang = 'python', title, caption } = Astro.props;
+---
+<figure class="code-example">
+  {title && <figcaption class="code-title">{title}</figcaption>}
+  <div class="code-frame">
+    <Code code={code} lang={lang} theme="github-light" wrap />
+  </div>
+  {caption && <p class="code-caption">{caption}</p>}
+</figure>

@@ -1,0 +1,43 @@
+---
+import Base from './Base.astro';
+import LessonHeader from '../components/lessons/LessonHeader.astro';
+import LessonNavigation from '../components/lessons/LessonNavigation.astro';
+import { getAdjacentLessons, getLesson } from '../data/lessons';
+
+interface Props {
+  slug: string;
+  description?: string;
+  toc?: { id: string; label: string }[];
+}
+const { slug, description, toc = [] } = Astro.props;
+const lesson = getLesson(slug);
+if (!lesson) throw new Error(`Unknown lesson slug: ${slug}`);
+const { prev, next } = getAdjacentLessons(slug);
+---
+<Base title={lesson.title} description={description ?? lesson.description}>
+  <article class="lesson">
+    <div class="wrap lesson-top">
+      <LessonHeader
+        title={lesson.title}
+        level={lesson.level}
+        subject={lesson.subject}
+        duration={lesson.duration}
+        description={lesson.description}
+      />
+      {toc.length > 0 && (
+        <nav class="lesson-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <ol>
+            {toc.map((item) => (
+              <li><a href={`#${item.id}`}>{item.label}</a></li>
+            ))}
+          </ol>
+        </nav>
+      )}
+    </div>
+    <div class="wrap lesson-content">
+      <slot />
+      <LessonNavigation prev={prev} next={next} />
+    </div>
+  </article>
+</Base>

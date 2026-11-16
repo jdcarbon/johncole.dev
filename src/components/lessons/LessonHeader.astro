@@ -1,0 +1,25 @@
+---
+interface Props {
+  title: string;
+  level: string;
+  subject: string;
+  duration: string;
+  description: string;
+}
+const { title, level, subject, duration, description } = Astro.props;
+---
+<header class="lesson-header">
+  <nav class="lesson-crumbs" aria-label="Breadcrumb">
+    <a href="/teaching">Teaching</a>
+    <span aria-hidden="true">/</span>
+    <span>Sample lessons</span>
+  </nav>
+  <div class="eyebrow">Sample instructional material</div>
+  <h1>{title}</h1>
+  <p class="lede">{description}</p>
+  <ul class="lesson-meta">
+    <li><strong>Level</strong> {level}</li>
+    <li><strong>Subject</strong> {subject}</li>
+    <li><strong>Duration</strong> {duration}</li>
+  </ul>
+</header>

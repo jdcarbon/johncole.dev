@@ -1,0 +1,13 @@
+---
+interface Props {
+  objectives: string[];
+}
+const { objectives } = Astro.props;
+---
+<section class="lesson-block" aria-labelledby="objectives-heading">
+  <h2 id="objectives-heading">Learning objectives</h2>
+  <p>By the end of this lesson, students should be able to:</p>
+  <ol class="objective-list">
+    {objectives.map((o) => <li>{o}</li>)}
+  </ol>
+</section>
