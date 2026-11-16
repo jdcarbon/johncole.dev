@@ -34,12 +34,14 @@ const independent = [
     kind: 'Research & publishing',
     body: 'An independent software product supporting serious scholarship, research, and knowledge sharing, with an emphasis on Latter-day Saint studies while accommodating broader academic interests. Focused on building a specialized publishing and research platform, supporting scholarly content and knowledge organization, membership and community functionality, and long-term product development and platform strategy. Ongoing independent project.',
     tech: 'Independent product development',
+    url: 'https://versarium.app/',
   },
   {
     title: '94x50',
     kind: 'Basketball analytics',
     body: "An independent basketball analytics product focused on understanding how teams perform, evolve, and compare throughout a season. Development work includes NBA statistical data ingestion and aggregation, team performance analysis, historical trends and time-series comparisons, schedule-strength analysis, player roles and contributions, interactive data visualization, automated insight generation, and statistical validation and testing. The goal is analytics that communicate not only a team's current performance, but how it arrived there and where its trajectory may be heading. Active product development.",
     tech: 'Independent product development',
+    url: 'https://94x50.io/',
   },
   {
     title: 'Register',
@@ -97,6 +99,7 @@ const independent = [
             <span class="number">{String(professional.length + i + 1).padStart(2, '0')} / {p.kind.toUpperCase()}</span>
             <h3>{p.title}</h3>
             <p>{p.body}</p>
+            {p.url && <p><a class="textlink" href={p.url} target="_blank" rel="noopener noreferrer">Visit {p.title}</a></p>}
           </div>
           <div class="tech">{p.tech}</div>
         </article>
