@@ -3,7 +3,7 @@ import '../styles/global.css';
 interface Props { title: string; description?: string; }
 const {title, description='John Cole — software engineering, teaching, and practical approaches to building software.'} = Astro.props;
 const path=Astro.url.pathname;
-const nav=[['/','Home'],['/work','Work'],['/teaching','Teaching'],['/hdse','HDSE'],['/writing','Writing'],['/about','About']];
+const nav=[['/','Home'],['/work','Work'],['/teaching','Teaching'],['/hdse','HDSE'],['/about','About']];
 ---
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#f8f7f2"/><meta name="description" content={description}/><link rel="canonical" href={new URL(path,Astro.site)}/><title>{title} | John Cole</title></head><body>
