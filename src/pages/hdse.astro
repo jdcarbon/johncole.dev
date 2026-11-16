@@ -23,8 +23,8 @@ const principles = [
   {
     num: '04',
     title: 'Verify Independently',
-    body: 'AI output must be evaluated against evidence beyond the model’s own assertion that it is correct. There is a difference between a model describing its work and independent evidence that the work behaves correctly. Verification can include automated tests, static analysis, type checking, contract validation, security review, runtime observation, manual inspection, and comparison with acceptance criteria. A model generating its own tests is useful; those tests do not automatically constitute independent verification if they share the same assumptions as the implementation.',
-    practice: 'Treat “the assistant said it works” as a claim to check, not as evidence. Prefer checks that can fail when the claim is wrong.',
+    body: 'AI output must be checked against evidence beyond the model’s own claim that it is correct. Useful checks include automated tests, static analysis, type checking, contract validation, security review, runtime observation, and manual inspection against acceptance criteria. Tests written by the same model that wrote the code can help, but they are not automatically independent if they share the same assumptions.',
+    practice: 'Treat “the assistant said it works” as a claim to check. Prefer checks that can fail when the claim is wrong.',
   },
   {
     num: '05',
@@ -124,18 +124,17 @@ const reading = [
     <div class="eyebrow">An evolving methodology</div>
     <h1>Human-Directed Software Engineering</h1>
     <p class="subtitle">Engineering software when implementation is increasingly automated.</p>
-    <p class="lede">AI systems can now perform substantial portions of software implementation. That changes the engineer’s work, but does not eliminate the need for engineering. Human-Directed Software Engineering explores how to organize software development around explicit decisions, durable knowledge, independent verification, and human accountability.</p>
-    <p class="lede" style="margin-top:0">It is intended for practicing engineers first, and for technical leaders, instructors, students, and organizations adopting AI development tools second. It adapts established engineering disciplines to environments where agents can perform substantial implementation work—without treating those agents as a substitute for engineering judgment.</p>
+    <p class="lede">AI systems can now perform substantial portions of software implementation. That changes the engineer’s work, but it does not remove the need for engineering judgment. Human-Directed Software Engineering organizes development around explicit decisions, durable project knowledge, independent verification, and human accountability.</p>
+    <p class="lede" style="margin-top:0">HDSE is a working methodology I'm developing through software engineering practice. It draws on established engineering disciplines and is intended to evolve through practical use, published examples, and feedback. The primary audience is practicing engineers; technical leaders, instructors, students, and teams adopting AI tools are secondary audiences.</p>
   </section>
 
   <section class="wrap section section-tight">
     <div class="bodycopy">
       <h2>Code Generation Is Not Software Engineering</h2>
-      <p>Producing code and engineering a software system are related activities, not the same activity. Software engineering includes deciding what to build, under which constraints, with which risks accepted, and with what evidence that the result is fit for use. Implementation is necessary. It is not sufficient.</p>
-      <p>Requirements are often ambiguous or incomplete. Correct-looking code can contain incorrect assumptions about data, concurrency, permissions, or edge cases that only appear in production. A passing test suite can still fail to cover essential behavior if the tests encode the same misunderstandings as the code. Architectural consequences accumulate over time: a convenient shortcut in one change becomes a boundary that later work cannot cross cleanly. Security and operational risks extend beyond individual functions into deployment, monitoring, recovery, and the people who depend on the system.</p>
-      <p>AI tools add further dynamics. They can produce different outputs across runs for the same prompt. Critical decisions can disappear inside transient conversations that never enter the repository. Productivity claims that count only generation time understate verification, integration, rework, and maintenance—the work that determines whether a change was actually cheap.</p>
-      <p>None of this requires claiming that AI-generated code is inherently inferior. Generated code is often useful, sometimes excellent, and frequently a good starting point. The central question is different: when implementation becomes cheaper, how do we preserve the judgment and evidence required to trust the result?</p>
-      <p>HDSE is one answer to that question. It is not a prompt-engineering course, a branded agent harness, or a claim that all development should be AI-generated. It is a practical way to keep human direction, durable knowledge, and independent verification at the center of the work while allowing assistants and agents to do substantial implementation.</p>
+      <p>Writing code and engineering a software system overlap, but they are not the same job. Engineering includes deciding what to build, under which constraints, with which risks accepted, and with what evidence the result is fit for use.</p>
+      <p>Requirements are often ambiguous. Correct-looking code can hide wrong assumptions about data, concurrency, or permissions. A passing test suite can miss essential behavior if the tests share the same misunderstandings as the code. Architectural shortcuts accumulate. Security and operational risk extend past individual functions into deployment, monitoring, and recovery.</p>
+      <p>AI tools add their own complications: different outputs across runs, design decisions trapped in chat transcripts, and productivity claims that count only generation time while ignoring verification, integration, rework, and maintenance.</p>
+      <p>Generated code is often useful. The harder question is how to keep judgment and evidence intact when implementation gets cheaper. HDSE is one practical answer: keep humans directing the work, keep important decisions in the repository, and verify results against evidence outside the model’s own assurance.</p>
     </div>
   </section>
 
@@ -163,8 +162,8 @@ const reading = [
   <section class="wrap section section-tight">
     <div class="bodycopy">
       <h2>A Practical Workflow</h2>
-      <p>HDSE uses an iterative workflow, not a rigid waterfall. Teams can return to earlier stages when verification exposes a misunderstanding, or when integration reveals a constraint that was not visible at the start. Verification belongs throughout the change. The stages below are a useful default order, not a claim that every task visits every stage with equal ceremony.</p>
-      <p>Small, low-risk edits may compress several stages into a few minutes of careful work. Larger changes—especially those that touch data integrity, security boundaries, or external contracts—should make each stage explicit enough that another engineer can reconstruct what was decided and why.</p>
+      <p>HDSE uses an iterative workflow. Teams return to earlier stages when verification exposes a misunderstanding or when integration reveals a constraint that was not visible at the start. Verification belongs throughout the change, not only at the end.</p>
+      <p>A one-line rename may compress several stages into a few careful minutes. A change that can corrupt records, cross a security boundary, or break an external contract should make each stage explicit enough that another engineer can reconstruct what was decided and why.</p>
     </div>
     <ol class="workflow" aria-label="HDSE workflow stages">
       {workflow.map((s) => (
@@ -182,7 +181,7 @@ const reading = [
   <section class="wrap section section-tight">
     <div class="bodycopy">
       <h2>What HDSE Looks Like in Practice</h2>
-      <p>The following is an illustrative scenario for a subscription-management style application. It is not a published HDSE case study, and it does not claim formal measurement or experimental validation. The point is to make the methodology concrete for someone who has never heard the term.</p>
+      <p>Here is an illustrative scenario for a subscription-management style application—meant to make the methodology concrete, not to report a measured case study.</p>
     </div>
     <div class="example">
       <h3>Initial request</h3>
@@ -244,7 +243,7 @@ const reading = [
       </div>
     </div>
     <div class="bodycopy">
-      <p>The right column is not a claim that AI can never assist those activities. The distinction is between tasks AI can help execute and responsibilities that must remain assigned to accountable humans.</p>
+      <p>AI can assist with items in both columns. The difference is which work can be delegated for execution and which responsibilities still need an accountable human.</p>
     </div>
   </section>
 
@@ -266,7 +265,7 @@ const reading = [
       </article>
       <article>
         <h3>Educators and Students</h3>
-        <p>A framework for teaching software engineering where generating code is no longer a reliable proxy for understanding. Education is an application of HDSE, not its defining purpose; the primary audience remains practicing engineers.</p>
+        <p>A way to teach software engineering when generating code is no longer a reliable proxy for understanding. Education is one application of HDSE; the primary audience remains practicing engineers.</p>
         <a class="textlink" href="/teaching">Teaching interests</a>
       </article>
     </div>
@@ -275,7 +274,7 @@ const reading = [
   <section class="wrap section section-tight">
     <div class="bodycopy">
       <h2>Learning and Applying HDSE</h2>
-      <p>Three learning paths are in development. They are planned sequences of practice and materials, not certifications, badges, or completed courses. The aim is transferable engineering judgment, not a productized curriculum brand.</p>
+      <p>Three learning paths are in development—planned sequences of practice and materials aimed at transferable engineering judgment.</p>
     </div>
     <div class="paths">
       {paths.map((p) => (
@@ -290,17 +289,16 @@ const reading = [
   <section class="wrap section section-tight">
     <div class="bodycopy">
       <h2>Labs and Reference Work</h2>
-      <p>HDSE is meant to be demonstrated in real repositories, not only described in prose. Planned labs will show requirements and specifications, domain modeling, architectural decisions, agent-directed implementation, testing and verification, and repository-first documentation. The value of a lab is not a slogan; it is a repository another engineer can clone, inspect, and critique.</p>
-      <p>The first planned reference project is Writer IDE, a collaborative writing application emphasizing structured content, shared universes, and canonical project knowledge. It is intended as an HDSE lab for those concerns. No public lab repository is published here yet. Links and short descriptions will be added when work is available to inspect, without redesigning this section into a catalog of unfinished placeholders.</p>
+      <p>HDSE should be demonstrated in real repositories. Planned labs will cover requirements and specifications, domain modeling, architectural decisions, agent-directed implementation, testing and verification, and repository-first documentation—material another engineer can clone, inspect, and critique.</p>
+      <p>The first planned reference project is Writer IDE, a collaborative writing application focused on structured content, shared universes, and canonical project knowledge. Links will be added when a public repository is available to inspect.</p>
     </div>
   </section>
 
   <section class="wrap section section-tight">
     <div class="bodycopy">
       <h2>Open Questions</h2>
-      <p>HDSE is a working framework, refined through implementation, evaluation, and feedback. It is not a completed academic standard, and presenting it as settled doctrine would overstate the evidence.</p>
-      <p>Open questions include how much specification is appropriate for different task sizes; which verification approaches best detect agent-generated defects; how teams can measure actual productivity after review and rework; how engineers retain deep understanding when implementation is delegated; how the methodology should evolve as model capabilities improve; and which practices remain useful independently of AI.</p>
-      <p>Some of those questions may have different answers for solo developers, product teams, regulated environments, and classrooms. Keeping the questions visible is part of treating HDSE as engineering methodology rather than marketing language.</p>
+      <p>HDSE continues to be refined through use. Open questions include how much specification different task sizes need; which verification approaches catch agent-generated defects well; how teams measure productivity after review and rework; how engineers keep deep understanding when implementation is delegated; how the methodology should change as models improve; and which practices remain useful even without AI.</p>
+      <p>Answers may differ for solo developers, product teams, regulated environments, and classrooms.</p>
     </div>
   </section>
 
@@ -312,7 +310,7 @@ const reading = [
       </div>
     </div>
     <div class="bodycopy">
-      <p>External research and documentation related to curricula, AI-assisted delivery, repository context, productivity measurement, and AI risk. These sources are not endorsements of HDSE, and HDSE was not created or validated by these organizations.</p>
+      <p>Related research and documentation on curricula, AI-assisted delivery, repository context, productivity measurement, and AI risk. Useful context for the same problem space; not endorsements of HDSE.</p>
     </div>
     <div class="readinglist">
       {reading.map((r) => (

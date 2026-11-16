@@ -165,6 +165,7 @@ WHERE status = 'active'
       <li><code>id</code> columns are primary keys.</li>
       <li><code>team_id</code> is a foreign key referencing <code>teams(id)</code>.</li>
       <li><code>CHECK</code> constraints encode allowed intervals and statuses.</li>
+      <li>The <code>GLOB</code> pattern on dates checks the <code>YYYY-MM-DD</code> shape, not that the date is a real calendar day. Production applications should also validate date semantics.</li>
       <li>Enable foreign keys in SQLite with <code>PRAGMA foreign_keys = ON;</code></li>
     </ul>
     <p class="downloads">
