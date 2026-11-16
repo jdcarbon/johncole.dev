@@ -1,0 +1,13 @@
+---
+import '../styles/global.css';
+interface Props { title: string; description?: string; }
+const {title, description='John Cole — software engineering, teaching, and practical approaches to building software.'} = Astro.props;
+const path=Astro.url.pathname;
+const nav=[['/','Home'],['/work','Work'],['/teaching','Teaching'],['/hdse','HDSE'],['/writing','Writing'],['/about','About']];
+---
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#f8f7f2"/><meta name="description" content={description}/><link rel="canonical" href={new URL(path,Astro.site)}/><title>{title} | John Cole</title></head><body>
+<header class="nav"><div class="wrap navinner"><a class="logo" href="/">johncole<span style="color:#a45435">.</span>dev</a><nav class="navlinks" aria-label="Main navigation">{nav.map(([href,label])=><a href={href} aria-current={path===href || (href!=='/' && path.startsWith(href+'/')) ? 'page':undefined}>{label}</a>)}<a class="navcta" href="mailto:colejd@gmail.com">Get in touch</a></nav></div></header>
+<main><slot /></main>
+<footer class="footer"><div class="wrap footinner"><span>© {new Date().getFullYear()} John Cole · Phoenix, Arizona</span><div class="footlinks"><a href="mailto:colejd@gmail.com">Email</a><a href="/teaching">Teaching</a><a href="/work">Selected work</a></div></div></footer>
+</body></html>
