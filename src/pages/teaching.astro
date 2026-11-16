@@ -1,4 +1,188 @@
 ---
 import Base from '../layouts/Base.astro';
+
+const topics = [
+  {
+    title: 'Programming Fundamentals',
+    items: [
+      'Introductory programming',
+      'Python and Java',
+      'Control flow, functions, and data structures',
+      'Problem decomposition and debugging',
+    ],
+  },
+  {
+    title: 'Software Engineering',
+    items: [
+      'Requirements and specifications',
+      'Architecture and design',
+      'Testing and quality assurance',
+      'Maintainability and technical tradeoffs',
+    ],
+  },
+  {
+    title: 'Databases and Data Modeling',
+    items: [
+      'SQL',
+      'Relational database design',
+      'Data integrity and constraints',
+      'Query performance',
+    ],
+  },
+  {
+    title: 'Web Applications and APIs',
+    items: [
+      'Client/server architecture',
+      'Backend development',
+      'REST APIs',
+      'Application integration',
+    ],
+  },
+  {
+    title: 'Development Practices and DevOps',
+    items: [
+      'Git and collaborative workflows',
+      'CI/CD',
+      'Automated testing',
+      'Deployment and operations',
+    ],
+  },
+  {
+    title: 'AI-Assisted Software Engineering',
+    items: [
+      'Human-directed development',
+      'AI as an implementation assistant',
+      'Verification and validation',
+      'Responsible integration of AI tools',
+    ],
+  },
+];
+
+const materials = [
+  {
+    title: 'Functions, Decomposition, and Testing',
+    detail: 'Introductory Python — structure, small functions, and tests that reveal intent.',
+  },
+  {
+    title: 'Modeling a Real-World Application',
+    detail: 'Software design and relational data — entities, constraints, and workable schemas.',
+  },
+  {
+    title: 'Evaluating AI-Generated Code',
+    detail: 'Testing, verification, and engineering judgment when an assistant drafts the first version.',
+  },
+];
 ---
-<Base title="Teaching"><section class="wrap pagehero"><div class="eyebrow">Teaching & education</div><h1>Teaching what matters, and why.</h1><p>I'm interested in teaching computer science and software development at the college level. My approach starts with fundamentals, clear explanations, and the habits that make someone effective on a real software project.</p></section><section class="wrap section" style="padding-top:0"><div class="bodycopy"><h2>What I bring to the classroom</h2><p>I've spent more than 15 years working on production software: designing applications, writing code, integrating systems, maintaining existing projects, and helping clients understand and use the tools built for them.</p><p>That work has included creating user documentation and providing hands-on training. Teaching programming is different from training software users, but both require patience, clarity, and an ability to explain unfamiliar ideas in practical terms.</p><h2>How I think about learning software</h2><p>Students need to understand the fundamentals: how programs execute, how data moves through a system, how to reason about errors, and how to test whether something works. Practical projects help connect those ideas to a larger purpose.</p><p>AI tools are changing how software gets written. I believe students should learn to use them thoughtfully without outsourcing their understanding or responsibility for the result.</p><h2>Education</h2><div class="listcards"><div class="listcard"><div class="date">Completed · August 2026</div><h3>BS, Software Engineering</h3><p>Western Governors University</p></div><div class="listcard"><div class="date">In progress</div><h3>MS, Software Engineering — DevOps</h3><p>Western Governors University · 13 graduate competency units completed through the accelerated BS-to-MS pathway as of the September 2026 transcript</p></div></div><h2>Instructional materials</h2><p>I'm developing sample lessons and exercises for introductory programming and software engineering. They'll be published here as they are ready.</p><div class="note"><strong>Interested in discussing a course?</strong><p style="margin-bottom:0">I'd welcome a conversation about computer science, programming, or software development instruction. <a class="textlink" href="mailto:colejd@gmail.com">Email me</a>.</p></div></div></section></Base>
+<Base
+  title="Teaching Software Engineering"
+  description="Teaching interests in programming, software engineering, and AI-assisted development from an experienced engineer preparing for college-level instruction."
+>
+  <section class="wrap pagehero">
+    <div class="eyebrow">Teaching & education</div>
+    <h1>Teaching Software Engineering</h1>
+    <p class="lede">I approach software engineering education from the perspective of someone who has spent years building, maintaining, and modernizing software that organizations depend on. My goal is to connect technical fundamentals with the judgment, habits, and practical skills required to build dependable systems.</p>
+    <p><a class="textlink" href="/hdse">Human-Directed Software Engineering</a></p>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="bodycopy">
+      <h2>How I Think About Teaching</h2>
+      <p>These principles guide how I would structure courses, assignments, and assessment. They come from professional practice as much as from formal study. I have not held a faculty appointment; what follows is a prepared instructional approach, not a claim of extensive classroom tenure.</p>
+
+      <h3>Fundamentals provide independence</h3>
+      <p>Students need enough understanding of programming languages, algorithms, data structures, systems, and software architecture to reason without depending entirely on frameworks or AI tools. Frameworks and assistants change. Conceptual understanding is what lets a graduate adapt when the stack under a project is replaced, or when a generated solution looks plausible but does not fit the problem. Independence is not hostility to tools; it is the ability to decide when a tool is wrong.</p>
+
+      <h3>Learning happens through building</h3>
+      <p>Programming is a practical discipline. Students should produce working software, encounter failure, debug problems, and revise their designs. Assignments should connect theory to observable behavior: a data structure that performs poorly under load, a schema that cannot express a required constraint, a test that catches a regression. The goal is competence that survives contact with incomplete requirements and imperfect tools—conditions that appear early in real projects and rarely disappear.</p>
+
+      <h3>Explain and defend decisions</h3>
+      <p>Working code alone is insufficient evidence of understanding. Students should be able to explain why they chose a design, what alternatives they considered, how they tested it, and where it might fail. That habit matters in industry review, and it matters even more when an assistant can produce a compiling solution that the author cannot account for. Assessment should make that explanation unavoidable.</p>
+
+      <h3>Engineering is a human responsibility</h3>
+      <p>Modern tools, including AI coding assistants, can accelerate implementation. Responsibility for correctness, maintainability, security, and the consequences of software remains with the engineers who build and release it. Instruction should treat that responsibility as part of the discipline, not as an optional ethics add-on at the end of the term.</p>
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="sectionhead">
+      <div>
+        <div class="eyebrow">Instructional interests</div>
+        <h2>Areas of Instruction</h2>
+      </div>
+    </div>
+    <p class="muted" style="max-width:720px;margin:0 0 8px">These are areas of professional and academic preparation — not a catalog of courses already taught.</p>
+    <div class="topicgrid">
+      {topics.map((t) => (
+        <article class="topic">
+          <h3>{t.title}</h3>
+          <ul>
+            {t.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="bodycopy">
+      <h2>Bringing Real Systems Into the Classroom</h2>
+      <p>Much of what working engineers do is not greenfield invention. Long-lived production systems teach lessons that self-contained exercises rarely surface. I want instructional examples that reflect that reality at a scope students can handle—without inventing finished classroom projects that do not yet exist.</p>
+      <p>Professional work has repeatedly required modernizing existing software rather than starting from scratch; working with complex business rules and changing requirements; designing databases that support operational workflows; integrating with legacy applications and third-party systems; diagnosing performance and reliability problems; and maintaining code written across different generations of technology. Inventory and auction operations, engagement platforms, and content workflows all force the same underlying question: how do you change a system people already rely on without breaking what still works?</p>
+      <p>Those experiences do not become course content by dumping proprietary details into a syllabus. They become content by translating patterns into understandable, appropriately scoped problems: a schema that must absorb a new workflow without breaking reports; an import path that must fail safely; an API whose contract has to survive a client that cannot be updated overnight. Students should leave with practice that resembles how software actually lives.</p>
+      <p><a class="textlink" href="/work">Selected professional and independent work</a></p>
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="bodycopy">
+      <h2>Teaching When AI Can Write Code</h2>
+      <p>Coding assistants create a real challenge for traditional programming education: a student may produce a working solution without fully understanding how it works. Banning the tools ignores how software is now written. Celebrating them uncritically risks graduating people who cannot diagnose failures or evaluate tradeoffs.</p>
+      <p>A better response is to change what we assess. Ask students to explain implementation decisions, reproduce and diagnose failures, write or critique tests and acceptance criteria, modify unfamiliar code, compare alternative implementations, and demonstrate conceptual understanding independent of the first draft an assistant produced. In that setting, speed of first compilation matters less than the quality of the student’s reasoning about the system.</p>
+      <p>The objective is not to preserve the difficulty of typing code. It is to preserve—and strengthen—the intellectual work of engineering.</p>
+      <p>That stance is the educational application of <a class="textlink" href="/hdse">Human-Directed Software Engineering (HDSE)</a>: humans direct the work, verification is independent of a model’s self-description, and durable project artifacts—not chat transcripts—hold the authoritative record.</p>
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="sectionhead">
+      <div>
+        <div class="eyebrow">Curriculum in progress</div>
+        <h2>Sample Teaching Materials</h2>
+      </div>
+    </div>
+    <div class="bodycopy" style="margin-bottom:8px">
+      <p>I am preparing sample lessons and exercises for introductory programming and software engineering. Published materials will appear here as they are ready. Until then, these titles indicate the direction of the work.</p>
+    </div>
+    <div class="materialrows">
+      {materials.map((m) => (
+        <div class="materialrow">
+          <div>
+            <h3>{m.title}</h3>
+            <p>{m.detail}</p>
+          </div>
+          <span class="status">In development</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="bodycopy">
+      <h2>Background</h2>
+      <p>More than 15 years of professional software development, including designing, modernizing, and maintaining production applications across multiple industries. That work has also included preparing software documentation and training end users on systems built for them — related skills, but distinct from formal classroom teaching.</p>
+      <div class="listcards" style="margin:1.4rem 0 1.6rem">
+        <div class="listcard">
+          <div class="date">Completed · 2026</div>
+          <h3>BS, Software Engineering</h3>
+          <p>Western Governors University</p>
+        </div>
+        <div class="listcard">
+          <div class="date">In progress</div>
+          <h3>MS, Software Engineering — DevOps</h3>
+          <p>Western Governors University. Graduate study continues through the accelerated BS-to-MS pathway; the master’s degree has not yet been awarded.</p>
+        </div>
+      </div>
+      <p>More context is on the <a class="textlink" href="/about">About</a> page. For conversations about courses, curriculum, or adjunct instruction, email <a class="textlink" href="mailto:colejd@gmail.com">colejd@gmail.com</a>.</p>
+    </div>
+  </section>
+</Base>
