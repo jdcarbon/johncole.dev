@@ -1,5 +1,5 @@
 ---
-import Base from '../layouts/Base.astro';
+import Base from '../../layouts/Base.astro';
 
 const professional = [
   {
@@ -7,6 +7,8 @@ const professional = [
     kind: 'Operations',
     body: 'A custom application that supports inventory, device processing, and daily warehouse operations. Much of my work involves replacing legacy functionality, improving database performance, and connecting the system to external services and warehouse hardware. Because the application supports ongoing operations, changes have to be made without disrupting the people who use it.',
     tech: 'Ruby on Rails · REST APIs · Database design · Systems integration',
+    caseStudyHref: '/work/warehouse-operations/',
+    caseStudyLabel: 'Read case study',
   },
   {
     title: 'Auction & Bidding Operations Platform',
@@ -78,6 +80,9 @@ const independent = [
             <span class="number">{String(i + 1).padStart(2, '0')} / {p.kind.toUpperCase()}</span>
             <h3>{p.title}</h3>
             <p>{p.body}</p>
+            {p.caseStudyHref && (
+              <p><a class="textlink" href={p.caseStudyHref}>{p.caseStudyLabel}</a></p>
+            )}
           </div>
           <div class="tech">{p.tech}</div>
         </article>

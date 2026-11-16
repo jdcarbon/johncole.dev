@@ -1,0 +1,84 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base
+  title="Rebuilding a Business-Critical Operations Platform"
+  description="A first-person engineering case study on replacing a legacy operations platform with Rails and PostgreSQL, including requirements discovery, data migration, systems integration, and a planned parallel transition."
+>
+  <article class="casestudy-article">
+    <section class="wrap pagehero">
+      <nav class="casestudy-crumbs" aria-label="Breadcrumb">
+        <a href="/work">Selected Work</a>
+        <span aria-hidden="true">/</span>
+        <span>Case study</span>
+      </nav>
+      <div class="eyebrow">Engineering case study</div>
+      <h1>Rebuilding a Business-Critical Operations Platform</h1>
+      <p class="subtitle">Modernizing a legacy application without source-code access, reconstructing inconsistent data, and designing a system that can evolve with the business.</p>
+      <ul class="casestudy-meta">
+        <li><strong>Role</strong> Sole software engineer</li>
+        <li><strong>Technology</strong> Ruby on Rails, PostgreSQL, Hotwire, Stimulus, background jobs, REST APIs</li>
+        <li><strong>Infrastructure</strong> Hetzner, GitHub Actions</li>
+        <li><strong>Duration</strong> About six months of development to the current near-launch stage</li>
+        <li><strong>Status</strong> At the time of writing, V1 is nearing soft launch</li>
+      </ul>
+    </section>
+
+    <section class="wrap section section-tight">
+      <div class="bodycopy">
+        <h2>The challenge</h2>
+        <p>The client ran daily operations on a legacy ColdFusion application backed by MySQL. It covered purchasing, receiving, inventory, order management, fulfillment, returns, shipping, and reporting—the kind of system people open first thing in the morning and keep open until the workday ends.</p>
+        <p>Over time, the application had become difficult to live with. Pages loaded slowly. Some screens pulled in more data and filtering options than they needed. Shared templates carried JavaScript and behavior that were not relevant to every page. Maintenance took longer than it should have. Reporting and dashboards were limited. The architecture had grown incrementally, and that history showed.</p>
+        <p>The client wanted a faster, more maintainable replacement with better reporting, clearer operational visibility, and room to add new functionality. I took on that work as the sole developer.</p>
+        <p>I started without access to the original source code or direct database access. That was a real constraint, not a rhetorical one. It shaped how discovery had to work.</p>
+
+        <h2>Understanding the existing system</h2>
+        <p>Without the codebase, I reconstructed the application’s behavior from what I could observe and verify: the interface itself, exported data, conversations with employees, team meetings, and discussion of how work actually moved through the warehouse.</p>
+        <p>Watching the screens was only part of the job. People had processes, exceptions, and workarounds that were not always visible in the UI. A button might look simple while representing a sequence of decisions that had accumulated over years.</p>
+        <p>The goal was not to recreate every old screen pixel for pixel. It was to understand which business processes had to survive, which could be redesigned, and where the legacy interface had papered over problems that a replacement should solve rather than copy.</p>
+
+        <h2>Designing the replacement</h2>
+        <p>I chose Ruby on Rails with PostgreSQL, Hotwire and Stimulus, background jobs, Hetzner for hosting, and GitHub Actions for deployment.</p>
+        <p>Those choices reflected familiarity and productivity, but also a preference for a cohesive application architecture. For this project, a full frontend/backend split would have added surface area without solving the core problems: coherent data, maintainable workflows, and an application one engineer can keep moving. Rails and Hotwire kept the stack concentrated. PostgreSQL gave a stronger foundation for relationships and constraints than the legacy model had enforced.</p>
+        <p>This was a ground-up redesign informed by the legacy system, not a ColdFusion-to-Rails translation. Some workflows and concepts carried forward because they still matched how the business works. Others were redesigned so the new system could do the same jobs with less friction.</p>
+
+        <h2>Reconstructing the data</h2>
+        <p>The legacy database was harder than the screens. Relationships were rudimentary. Foreign keys were not enforced. Tables and associations had grown ad hoc. The data was usable enough for the old application to keep running, but it was not ready to drop cleanly into a coherent PostgreSQL model.</p>
+        <p>Migration meant more than copying rows. I built custom migration scripts, used staging tables, defined matching and transformation rules, and reconciled ambiguous relationships by hand where automation was not enough. Where record provenance could be recovered, I preserved it. Where a relationship could not be established confidently, those records are marked for review with the client’s team rather than forced into a guess.</p>
+        <p>That work is still underway.</p>
+        <p class="pullquote">A successful migration has to preserve the meaning of the data, not merely its contents.</p>
+
+        <h2>Improving the application</h2>
+
+        <h3>Search and performance</h3>
+        <p>I implemented universal search and redesigned how people find and filter records, instead of relying on page loads that pulled unnecessary options and data. Performance has been a design concern throughout development, not a polish step at the end.</p>
+        <p>I am not publishing numerical speed claims. Formal benchmarking has not been done yet, in part because the staging environment uses less capable hardware than the intended production environment. Until parallel operation and production cutover are further along, any figure would overstate what we know.</p>
+
+        <h3>Reporting and analytics</h3>
+        <p>Reporting was a major reason for the rewrite. The replacement rebuilds and improves existing reports, adds dashboards, introduces new reports, and includes an analytics package. A cleaner data model makes those views more trustworthy: when relationships and statuses mean something consistent, reports stop being clever queries around broken assumptions.</p>
+
+        <h3>Integrations and workflows</h3>
+        <p>Warehouse software rarely lives alone. The replacement integrates with accounting, shipping, device-processing, sales-channel, and fulfillment services. Some of that integration work is in place; some remains planned or under development. I am not treating a roadmap item as a finished connection.</p>
+        <p>Background jobs handle work that should not block an operator’s screen. APIs connect the application to external operational systems. Day-to-day workflows—receiving, inventory movement, order handling, returns—were redesigned around the new model rather than copied from the old templates.</p>
+        <p>A substantial piece of the project has been replacing Salesforce functionality for order and return management. The challenge was less a single exotic technical puzzle than the breadth of behavior to recreate and the API work required to keep those processes connected to the rest of the operation.</p>
+
+        <h2>Testing and transition</h2>
+        <p>The original system remains in production. At the time of writing, the V1 replacement has gone through automated testing, manual testing, and employee testing. Early employee feedback has been positive, which is encouraging and still incomplete evidence.</p>
+        <p>The planned soft launch will process equivalent business information through both systems. The point is to compare behavior, find discrepancies, and validate workflows before final cutover. Historical data reconciliation and migration are part of that transition, not a separate afterthought.</p>
+        <p>Final cutover has not happened yet. Until it does, claims about production performance or proven operational gains would be premature.</p>
+
+        <h2>What I’d do differently</h2>
+        <p>Looking back, I would spend even more time with employees before writing much of the replacement. Some workflow bottlenecks only became clear after pieces of the new application existed, which meant changing course midstream.</p>
+        <p>There is a difference between understanding how software behaves and understanding how people need to work. Interfaces and exports show the former. Conversations, observation, and patience uncover the latter. The best technical solution to a misunderstood problem is still the wrong solution.</p>
+        <p>That lesson fits the broader habit I try to keep: understand the problem before locking in the architecture. Tools and frameworks matter; they just should not arrive first.</p>
+
+        <h2>Current status</h2>
+        <p>At the time of writing, the project reflects roughly six months of solo development. V1 is nearing soft launch. The replacement has a new database model, redesigned workflows, universal search, expanded reporting and analytics, additional integrations, and employee testing in progress.</p>
+        <p>Still ahead: finishing migration and reconciliation, running parallel operation, completing production cutover, and benchmarking on production-class hardware.</p>
+        <p>The larger takeaway is simple. Modernization is not just moving an application to a newer language or framework. It is building a foundation that better reflects the business—and that people can understand, maintain, and extend over time.</p>
+
+        <p class="calloutlink"><a class="textlink" href="/work">Back to Selected Work</a></p>
+      </div>
+    </section>
+  </article>
+</Base>
